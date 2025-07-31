@@ -12,11 +12,15 @@ app.use(cors({
   origin: [
     process.env.FRONTEND_URL || 'https://fitmind-cloud.onrender.com',
     'https://fitmind-cloud.onrender.com',
+    'https://fitmind-cloud.vercel.app',
+    /^https:\/\/fitmind-cloud.*\.vercel\.app$/,  // Allow all Vercel preview deployments
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:5175'
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
