@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Heart, Brain, Search, Filter } from 'lucide-react';
-import { getAllJournals } from '../services/journalService';
+import { Calendar, Heart, Brain, Search, Filter, Trash2 } from 'lucide-react';
+import { getAllJournals, deleteJournal } from '../services/journalService';
 import { format, isToday, isYesterday } from 'date-fns';
 
 const DiaryPage = () => {
@@ -10,6 +10,8 @@ const DiaryPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMood, setSelectedMood] = useState('all');
   const [expandedEntry, setExpandedEntry] = useState(null);
+  const [deletingEntry, setDeletingEntry] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
   useEffect(() => {
     const fetchEntries = async () => {
@@ -49,6 +51,35 @@ const DiaryPage = () => {
     if (isToday(date)) return 'Today';
     if (isYesterday(date)) return 'Yesterday';
     return format(date, 'MMM d, yyyy');
+  };
+
+  const handleDeleteEntry = async (entryId) => {
+    try {
+      setDeletingEntry(entryId);
+      await deleteJournal(entryId);
+      
+      // Remove the entry from the local state
+      setEntries(prevEntries => prevEntries.filter(entry => entry._id !== entryId));
+      setShowDeleteConfirm(null);
+      
+      // If the deleted entry was expanded, collapse it
+      if (expandedEntry === entryId) {
+        setExpandedEntry(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete entry:', error);
+      alert('Failed to delete entry. Please try again.');
+    } finally {
+      setDeletingEntry(null);
+    }
+  };
+
+  const confirmDelete = (entryId) => {
+    setShowDeleteConfirm(entryId);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(null);
   };
 
   const filteredEntries = entries.filter(entry => {
@@ -155,11 +186,27 @@ const DiaryPage = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <span className="text-2xl">{getMoodEmoji(entry.mood)}</span>
                   <span className="text-sm text-gray-600 capitalize">
                     {entry.mood}
                   </span>
+                  <motion.button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      confirmDelete(entry._id);
+                    }}
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    disabled={deletingEntry === entry._id}
+                  >
+                    {deletingEntry === entry._id ? (
+                      <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <Trash2 size={16} />
+                    )}
+                  </motion.button>
                 </div>
               </div>
 
@@ -235,6 +282,61 @@ const DiaryPage = () => {
           </motion.div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={cancelDelete}
+          >
+            <motion.div
+              className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center mb-4">
+                <Trash2 className="text-red-500 mr-3" size={24} />
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Delete Journal Entry
+                </h3>
+              </div>
+              
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this journal entry? This action cannot be undone.
+              </p>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={cancelDelete}
+                  className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteEntry(showDeleteConfirm)}
+                  disabled={deletingEntry === showDeleteConfirm}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
+                  {deletingEntry === showDeleteConfirm ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete'
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
