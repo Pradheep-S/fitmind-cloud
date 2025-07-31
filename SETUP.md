@@ -36,12 +36,12 @@ NODE_ENV=development
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/fitmind
 GEMINI_API_KEY=your_gemini_api_key_here  # Optional
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=https://fitmind-cloud.onrender.com
 ```
 
 **Frontend (.env.local):**
 ```env
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=https://fitmind-cloud.onrender.com/api
 ```
 
 ### 4. 🏃 Running the Application
@@ -64,6 +64,12 @@ npm run dev
 
 ### 5. 🌐 Access the Application
 
+**Production (Deployed):**
+- **Frontend**: https://fitmind-cloud.onrender.com
+- **Backend API**: https://fitmind-cloud.onrender.com/api
+- **API Health Check**: https://fitmind-cloud.onrender.com/api/health
+
+**Local Development:**
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:5000
 - **API Health Check**: http://localhost:5000/api/health
@@ -125,7 +131,10 @@ cd backend && npm start
 # Frontend with debug info
 cd frontend && npm run dev
 
-# API testing
+# API testing (production)
+curl https://fitmind-cloud.onrender.com/api/health
+
+# API testing (local)
 curl http://localhost:5000/api/health
 ```
 

@@ -204,7 +204,7 @@ Users can now:
 
 ### 1. Test Email Configuration
 ```bash
-curl -X POST http://localhost:5000/api/email/test \
+curl -X POST https://fitmind-cloud.onrender.com/api/email/test \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"email": "your-email@gmail.com", "name": "Test User"}'
@@ -219,7 +219,7 @@ curl -X POST http://localhost:5000/api/email/test \
 
 ### 3. Manual Trigger (for immediate testing)
 ```bash
-curl -X POST http://localhost:5000/api/email/daily-reminder/trigger \
+curl -X POST https://fitmind-cloud.onrender.com/api/email/daily-reminder/trigger \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
