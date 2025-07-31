@@ -16,6 +16,9 @@ const HomePage = () => {
     totalEntries: 0,
     averageMood: 0
   });
+  const [monthlyStats, setMonthlyStats] = useState({
+    totalEntries: 0
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,9 +27,13 @@ const HomePage = () => {
         const dailyQuote = await getQuote();
         setQuote(dailyQuote);
         
-        // Fetch user stats
+        // Fetch user stats (weekly for streaks and mood)
         const userStats = await getJournalStats('week');
         setStats(userStats);
+        
+        // Fetch monthly stats for "This Month" display
+        const monthlyUserStats = await getJournalStats('month');
+        setMonthlyStats(monthlyUserStats);
       } catch (error) {
         console.error('Failed to fetch data:', error);
         setQuote({
@@ -44,30 +51,6 @@ const HomePage = () => {
   const handleStartJournal = () => {
     navigate('/journal');
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch quote
-        const dailyQuote = await getQuote();
-        setQuote(dailyQuote);
-        
-        // Fetch user stats
-        const userStats = await getJournalStats('week');
-        setStats(userStats);
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-        setQuote({
-          text: "The journey of a thousand miles begins with a single step.",
-          author: "Lao Tzu"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   return (
     <motion.div 
@@ -154,7 +137,7 @@ const HomePage = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 mb-1">This Month</p>
-              <p className="text-3xl font-bold text-green-600">{stats.totalEntries || 0} entries</p>
+              <p className="text-3xl font-bold text-green-600">{monthlyStats.totalEntries || 0} entries</p>
             </div>
             <PenTool className="text-green-500" size={32} />
           </div>

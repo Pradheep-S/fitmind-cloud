@@ -3,14 +3,20 @@ import { motion } from 'framer-motion';
 import { Moon, Sun, Shield, Trash2, Bell, Download, Upload, User, Mail, Save } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { downloadJournalData } from '../services/journalService';
+import { updateEmailPreferences, getEmailPreferences } from '../services/emailService';
 
 const SettingsPage = ({ user }) => {
   const { updateProfile, logout } = useAuth();
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
+  const [dailyReminder, setDailyReminder] = useState({ enabled: false, time: '20:00' });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(null);
+  
+  // Email preferences state
+  const [isUpdatingEmailPrefs, setIsUpdatingEmailPrefs] = useState(false);
+  const [emailPrefsSuccess, setEmailPrefsSuccess] = useState(false);
   
   // Profile form state
   const [profileData, setProfileData] = useState({
@@ -27,8 +33,38 @@ const SettingsPage = ({ user }) => {
         name: user.name || '',
         email: user.email || ''
       });
-      setNotifications(user.preferences?.notifications ?? true);
       setDarkMode(user.preferences?.theme === 'dark');
+    }
+  }, [user]);
+
+  // Load email preferences separately
+  useEffect(() => {
+    const loadEmailPreferences = async () => {
+      try {
+        const result = await getEmailPreferences();
+        if (result.success) {
+          const prefs = result.data.preferences;
+          setNotifications(prefs.notifications ?? true);
+          setDailyReminder({
+            enabled: prefs.dailyReminder?.enabled ?? false,
+            time: prefs.dailyReminder?.time ?? '20:00'
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load email preferences:', error);
+        // Fallback to user preferences if available
+        if (user) {
+          setNotifications(user.preferences?.notifications ?? true);
+          setDailyReminder({
+            enabled: user.preferences?.dailyReminder?.enabled ?? false,
+            time: user.preferences?.dailyReminder?.time ?? '20:00'
+          });
+        }
+      }
+    };
+
+    if (user) {
+      loadEmailPreferences();
     }
   }, [user]);
 
@@ -41,7 +77,6 @@ const SettingsPage = ({ user }) => {
       const result = await updateProfile({
         name: profileData.name,
         preferences: {
-          notifications,
           theme: darkMode ? 'dark' : 'light'
         }
       });
@@ -54,6 +89,27 @@ const SettingsPage = ({ user }) => {
       console.error('Profile update failed:', error);
     } finally {
       setIsUpdatingProfile(false);
+    }
+  };
+
+  const handleEmailPreferencesUpdate = async () => {
+    setIsUpdatingEmailPrefs(true);
+    setEmailPrefsSuccess(false);
+    
+    try {
+      const result = await updateEmailPreferences({
+        notifications,
+        dailyReminder
+      });
+      
+      if (result.success) {
+        setEmailPrefsSuccess(true);
+        setTimeout(() => setEmailPrefsSuccess(false), 3000);
+      }
+    } catch (error) {
+      console.error('Email preferences update failed:', error);
+    } finally {
+      setIsUpdatingEmailPrefs(false);
     }
   };
 
@@ -256,6 +312,98 @@ const SettingsPage = ({ user }) => {
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Email Preferences */}
+        <motion.div 
+          className="glass-card p-6"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.55, duration: 0.6 }}
+        >
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">📧 Email Reminders</h3>
+          
+          <div className="space-y-4">
+            {/* Daily Reminder Toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Mail className="text-blue-500" size={20} />
+                <div>
+                  <p className="font-medium text-gray-800">Daily Email Reminders</p>
+                  <p className="text-sm text-gray-600">Get beautiful email reminders to journal</p>
+                </div>
+              </div>
+              
+              <motion.button
+                onClick={() => setDailyReminder(prev => ({ ...prev, enabled: !prev.enabled }))}
+                className={`relative w-14 h-8 rounded-full transition-colors duration-200 ${
+                  dailyReminder.enabled ? 'bg-primary-500' : 'bg-gray-300'
+                }`}
+                whileTap={{ scale: 0.95 }}
+              >
+                <motion.div
+                  className="absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md"
+                  animate={{ x: dailyReminder.enabled ? 24 : 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+              </motion.button>
+            </div>
+
+            {/* Time Picker (only show when enabled) */}
+            {dailyReminder.enabled && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="pl-8 space-y-2"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="text-sm text-gray-600">Reminder time:</div>
+                  <div className="relative">
+                    <input
+                      type="time"
+                      value={dailyReminder.time}
+                      onChange={(e) => setDailyReminder(prev => ({ ...prev, time: e.target.value }))}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 pl-0">
+                  💡 You'll receive a beautiful, motivational email at this time every day
+                </p>
+              </motion.div>
+            )}
+
+            {/* Save Email Preferences Button */}
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              <div className="text-sm text-gray-600">
+                Remember to save your email preferences
+              </div>
+              <motion.button
+                onClick={handleEmailPreferencesUpdate}
+                disabled={isUpdatingEmailPrefs}
+                className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium 
+                         transition-colors duration-200 flex items-center space-x-2 disabled:opacity-50"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Save size={16} />
+                <span>{isUpdatingEmailPrefs ? 'Saving...' : 'Save Email Settings'}</span>
+              </motion.button>
+            </div>
+
+            {/* Success Message */}
+            {emailPrefsSuccess && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-green-100 text-green-800 border border-green-200 p-3 rounded-lg text-sm"
+              >
+                ✅ Email preferences saved successfully! You'll receive daily reminders at {dailyReminder.time} if enabled.
+              </motion.div>
+            )}
           </div>
         </motion.div>
 

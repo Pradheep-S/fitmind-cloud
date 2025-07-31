@@ -190,38 +190,52 @@ const StatsPage = () => {
           <h3 className="text-xl font-semibold text-gray-800 mb-4">
             Mood Trend Over Time
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={stats.moodTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.2)" />
-              <XAxis 
-                dataKey="date" 
-                stroke="#6B7280"
-                fontSize={12}
-                tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              />
-              <YAxis 
-                stroke="#6B7280"
-                fontSize={12}
-                domain={[0, 10]}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'rgba(255,255,255,0.9)', 
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: '8px'
-                }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="mood" 
-                stroke="#3B82F6" 
-                strokeWidth={3}
-                dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          {stats.moodTrend && stats.moodTrend.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={stats.moodTrend}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.2)" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#6B7280"
+                  fontSize={12}
+                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                />
+                <YAxis 
+                  stroke="#6B7280"
+                  fontSize={12}
+                  domain={[0, 10]}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255,255,255,0.9)', 
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="mood" 
+                  stroke="#3B82F6" 
+                  strokeWidth={3}
+                  dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-[300px] text-center">
+              <div className="text-gray-400 mb-4">
+                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                </svg>
+              </div>
+              <h4 className="text-lg font-medium text-gray-600 mb-2">No Mood Trend Data</h4>
+              <p className="text-gray-500 text-sm max-w-xs">
+                Keep journaling daily to track your mood patterns over time. Your emotional journey will be visualized here.
+              </p>
+            </div>
+          )}
         </motion.div>
 
         {/* Mood Distribution Pie Chart */}
@@ -234,25 +248,39 @@ const StatsPage = () => {
           <h3 className="text-xl font-semibold text-gray-800 mb-4">
             Mood Distribution
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={stats.moodDistribution}
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                labelLine={false}
-              >
-                {stats.moodDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          {stats.moodDistribution && stats.moodDistribution.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={stats.moodDistribution}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
+                >
+                  {stats.moodDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-[300px] text-center">
+              <div className="text-gray-400 mb-4">
+                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h4 className="text-lg font-medium text-gray-600 mb-2">No Mood Data Available</h4>
+              <p className="text-gray-500 text-sm max-w-xs">
+                Start journaling to see your mood distribution patterns. Your emotional insights will appear here once you have entries.
+              </p>
+            </div>
+          )}
         </motion.div>
       </div>
 
@@ -269,35 +297,63 @@ const StatsPage = () => {
             AI Weekly Reflection
           </h3>
         </div>
-        <p className="text-gray-700 leading-relaxed">
-          {stats.weeklyReflection}
-        </p>
+        {stats.weeklyReflection ? (
+          <p className="text-gray-700 leading-relaxed">
+            {stats.weeklyReflection}
+          </p>
+        ) : (
+          <div className="text-center py-8">
+            <div className="text-gray-400 mb-4">
+              <Brain className="w-12 h-12 mx-auto" />
+            </div>
+            <h4 className="text-lg font-medium text-gray-600 mb-2">No Reflection Available</h4>
+            <p className="text-gray-500 text-sm max-w-md mx-auto">
+              Complete more journal entries to receive AI-powered insights about your emotional patterns and mental wellness journey.
+            </p>
+          </div>
+        )}
       </motion.div>
 
       {/* Achievements */}
       <motion.div 
-        className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8"
+        className="mt-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.1, duration: 0.6 }}
       >
-        <div className="glass-card p-6 text-center">
-          <div className="text-4xl mb-2">🏆</div>
-          <h4 className="font-semibold text-gray-800">Consistency Champion</h4>
-          <p className="text-sm text-gray-600 mt-1">5 days in a row!</p>
-        </div>
+        {stats.totalEntries > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="glass-card p-6 text-center">
+              <div className="text-4xl mb-2">🏆</div>
+              <h4 className="font-semibold text-gray-800">Consistency Champion</h4>
+              <p className="text-sm text-gray-600 mt-1">{stats.currentStreak} days in a row!</p>
+            </div>
 
-        <div className="glass-card p-6 text-center">
-          <div className="text-4xl mb-2">🌟</div>
-          <h4 className="font-semibold text-gray-800">Positive Mindset</h4>
-          <p className="text-sm text-gray-600 mt-1">Most entries this week were positive</p>
-        </div>
+            <div className="glass-card p-6 text-center">
+              <div className="text-4xl mb-2">🌟</div>
+              <h4 className="font-semibold text-gray-800">Positive Mindset</h4>
+              <p className="text-sm text-gray-600 mt-1">Keep up the great work!</p>
+            </div>
 
-        <div className="glass-card p-6 text-center">
-          <div className="text-4xl mb-2">📝</div>
-          <h4 className="font-semibold text-gray-800">Prolific Writer</h4>
-          <p className="text-sm text-gray-600 mt-1">Over 1000 words this week</p>
-        </div>
+            <div className="glass-card p-6 text-center">
+              <div className="text-4xl mb-2">📝</div>
+              <h4 className="font-semibold text-gray-800">Prolific Writer</h4>
+              <p className="text-sm text-gray-600 mt-1">{stats.totalEntries} entries recorded</p>
+            </div>
+          </div>
+        ) : (
+          <div className="glass-card p-8 text-center">
+            <div className="text-gray-400 mb-4">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+            </div>
+            <h4 className="text-lg font-medium text-gray-600 mb-2">No Achievements Yet</h4>
+            <p className="text-gray-500 text-sm max-w-md mx-auto">
+              Start your journaling journey to unlock achievements and track your progress. Your first entry will begin building your stats!
+            </p>
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );

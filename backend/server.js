@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const schedulerService = require('./services/schedulerService');
 require('dotenv').config();
 
 const app = express();
@@ -37,6 +38,12 @@ connectDB();
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/journal', require('./routes/journal'));
+app.use('/api/email', require('./routes/email'));
+
+// Root route for deployment health check
+app.get('/', (req, res) => {
+  res.send('FitMind Cloud Backend is Running');
+});
 
 // Health check route
 app.get('/api/health', (req, res) => {
@@ -64,4 +71,15 @@ app.use('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  
+  // Initialize scheduler service
+  schedulerService.startScheduler();
+  
+  // Auto-start daily reminders if in production or if EMAIL_USER is configured
+  if (process.env.NODE_ENV === 'production' || process.env.EMAIL_USER) {
+    console.log('🚀 Auto-starting daily reminder scheduler...');
+    schedulerService.startDailyReminders();
+  } else {
+    console.log('📧 Email not configured. Use /api/email/scheduler/start to enable daily reminders.');
+  }
 });
