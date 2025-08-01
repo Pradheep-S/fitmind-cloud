@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Book, BarChart3, Settings, Home, User, LogOut, PenTool, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const Navbar = () => {
   const { logout, user } = useAuth();
@@ -10,6 +10,7 @@ const Navbar = () => {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
   // Handle scroll effect
   useEffect(() => {
@@ -21,6 +22,27 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Handle click outside to close mobile menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    // Only add event listener when menu is open
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    // Cleanup event listeners
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   const navItems = [
     { id: 'home', label: 'Home', icon: Home, path: '/' },
@@ -49,6 +71,7 @@ const Navbar = () => {
 
   return (
     <motion.nav 
+      ref={menuRef}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled 
           ? 'bg-white/95 backdrop-blur-xl shadow-2xl border-b border-white/20' 
